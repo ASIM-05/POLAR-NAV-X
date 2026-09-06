@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -16,12 +16,11 @@ import { mockRoutes, type RouteData } from '../data/mockRoute';
 import { mockIcebergs, type Iceberg } from '../data/mockIceberg';
 import { mockHeatmapPoints } from '../data/mockHeatmap';
 
-// Compute initial bounding box encompassing all route waypoints and iceberg positions
-const allLocations: [number, number][] = [
-  ...mockRoutes.flatMap((r) => r.coordinates),
-  ...mockIcebergs.map((iceberg): [number, number] => [iceberg.latitude, iceberg.longitude]),
-];
-const initialBounds = L.latLngBounds(allLocations.map((pos) => L.latLng(pos[0], pos[1])));
+// Fallback Antarctic bounds when no route/iceberg data is available
+const fallbackBounds = L.latLngBounds(
+  L.latLng(-80, -180),
+  L.latLng(-55, 180)
+);
 
 /**
  * Leaflet helper component that automatically re-fits map bounds when selected route changes.
@@ -73,6 +72,7 @@ interface AntarcticMapProps {
   layers?: LayerVisibilityState;
   isLeftOpen?: boolean;
   isRightOpen?: boolean;
+  icebergs?: Iceberg[];
   selectedIcebergId?: string | null;
   onSelectIceberg?: (iceberg: Iceberg) => void;
 }
@@ -94,11 +94,21 @@ export const AntarcticMap: React.FC<AntarcticMapProps> = ({
   },
   isLeftOpen,
   isRightOpen,
+  icebergs = mockIcebergs,
   selectedIcebergId,
   onSelectIceberg,
 }) => {
   const selectedRoute = routes.find((r) => r.id === selectedRouteId) || routes[0] || mockRoutes[0];
-  const selectedIceberg = mockIcebergs.find((i) => i.id === selectedIcebergId);
+  const selectedIceberg = icebergs.find((i) => i.id === selectedIcebergId);
+
+  const initialBounds = useMemo(() => {
+    const locations: [number, number][] = [
+      ...routes.flatMap((r) => r.coordinates),
+      ...icebergs.map((iceberg): [number, number] => [iceberg.latitude, iceberg.longitude]),
+    ];
+    if (locations.length === 0) return fallbackBounds;
+    return L.latLngBounds(locations.map((pos) => L.latLng(pos[0], pos[1])));
+  }, [routes, icebergs]);
 
   return (
     <div className="map-wrapper" style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -135,11 +145,11 @@ export const AntarcticMap: React.FC<AntarcticMapProps> = ({
 
         {/* Iceberg Marker Layer */}
         {layers.icebergs && (
-          <IcebergLayer icebergs={mockIcebergs} onSelectIceberg={onSelectIceberg} />
+          <IcebergLayer icebergs={icebergs} onSelectIceberg={onSelectIceberg} />
         )}
 
         {/* 24-Hour Predicted Position Vector Line for Selected Iceberg */}
-        {layers.icebergs && selectedIceberg && selectedIceberg.predictedPosition24h && (
+        {layers.icebergs && selectedIceberg?.predictedPosition24h && (
           <>
             <Polyline
               positions={[

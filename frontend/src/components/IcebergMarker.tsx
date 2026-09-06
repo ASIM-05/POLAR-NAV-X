@@ -61,8 +61,8 @@ interface IcebergMarkerProps {
 export const IcebergMarker: React.FC<IcebergMarkerProps> = ({ iceberg, onSelectIceberg }) => {
   // Dynamic icon sizing scaled with zoom level (baseSize=32, baseZoom=5, minSize=18, maxSize=64)
   const size = useZoomScaledSize(32, 5, 18, 64);
-  const icon = createIcebergIcon(iceberg.riskLevel, size);
-  const riskColor = getRiskColor(iceberg.riskLevel);
+  const icon = createIcebergIcon(iceberg.riskLevel ?? '', size);
+  const riskColor = getRiskColor(iceberg.riskLevel ?? '');
 
   return (
     <Marker
@@ -88,17 +88,21 @@ export const IcebergMarker: React.FC<IcebergMarkerProps> = ({ iceberg, onSelectI
               padding: '2px 6px',
               borderRadius: '4px'
             }}>
-              {iceberg.riskLevel || 'NORISK'}
+              {iceberg.riskLevel || 'N/A'}
             </span>
           </div>
           <div><strong>ID:</strong> {iceberg.id}</div>
           <div><strong>Lat:</strong> {iceberg.latitude.toFixed(4)}</div>
           <div><strong>Lng:</strong> {iceberg.longitude.toFixed(4)}</div>
+          {iceberg.lengthNm != null && <div><strong>Length:</strong> {iceberg.lengthNm} NM</div>}
+          {iceberg.widthNm != null && <div><strong>Width:</strong> {iceberg.widthNm} NM</div>}
           {iceberg.sizeKm2 && <div><strong>Area:</strong> {iceberg.sizeKm2} km²</div>}
-          <div>
-            <strong>Status:</strong>{' '}
-            <span style={{ color: '#0284c7', fontWeight: 'bold' }}>{iceberg.currentStatus || iceberg.status}</span>
-          </div>
+          {(iceberg.currentStatus || iceberg.status) && (
+            <div>
+              <strong>Status:</strong>{' '}
+              <span style={{ color: '#0284c7', fontWeight: 'bold' }}>{iceberg.currentStatus || iceberg.status}</span>
+            </div>
+          )}
           {iceberg.lastObserved && <div><strong>Observed:</strong> {iceberg.lastObserved}</div>}
           {iceberg.source && <div><strong>Source:</strong> <span style={{ color: '#64748b', fontSize: '11px' }}>{iceberg.source}</span></div>}
         </div>

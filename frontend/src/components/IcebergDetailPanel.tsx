@@ -18,7 +18,8 @@ export const IcebergDetailPanel: React.FC<IcebergDetailPanelProps> = ({
     );
   }
 
-  const riskClass = `risk-${selectedIceberg.riskLevel.toLowerCase()}`;
+  const riskClass = `risk-${(selectedIceberg.riskLevel ?? 'LOW').toLowerCase()}`;
+  const displayStatus = selectedIceberg.currentStatus || selectedIceberg.status;
 
   return (
     <div className="iceberg-detail-panel">
@@ -29,7 +30,7 @@ export const IcebergDetailPanel: React.FC<IcebergDetailPanelProps> = ({
           <h4>{selectedIceberg.name || selectedIceberg.id}</h4>
         </div>
         <div className="header-actions">
-          <span className={`risk-badge ${riskClass}`}>{selectedIceberg.riskLevel}</span>
+          <span className={`risk-badge ${riskClass}`}>{selectedIceberg.riskLevel || 'N/A'}</span>
           <button className="close-panel-btn" onClick={onClose} title="Deselect iceberg">
             ✕
           </button>
@@ -43,10 +44,12 @@ export const IcebergDetailPanel: React.FC<IcebergDetailPanelProps> = ({
           <span className="detail-value highlight">{selectedIceberg.id}</span>
         </div>
 
-        <div className="detail-row">
-          <span className="detail-label">Current Status:</span>
-          <span className="detail-value status-tag">{selectedIceberg.currentStatus}</span>
-        </div>
+        {displayStatus && (
+          <div className="detail-row">
+            <span className="detail-label">Current Status:</span>
+            <span className="detail-value status-tag">{displayStatus}</span>
+          </div>
+        )}
 
         <div className="detail-row">
           <span className="detail-label">Latitude:</span>
@@ -58,15 +61,33 @@ export const IcebergDetailPanel: React.FC<IcebergDetailPanelProps> = ({
           <span className="detail-value">{selectedIceberg.longitude.toFixed(4)}° W</span>
         </div>
 
-        <div className="detail-row">
-          <span className="detail-label">Drift Velocity:</span>
-          <span className="detail-value">{selectedIceberg.velocityMs} m/s</span>
-        </div>
+        {selectedIceberg.lengthNm != null && (
+          <div className="detail-row">
+            <span className="detail-label">Length:</span>
+            <span className="detail-value">{selectedIceberg.lengthNm} NM</span>
+          </div>
+        )}
 
-        <div className="detail-row">
-          <span className="detail-label">Direction:</span>
-          <span className="detail-value compass-heading">{selectedIceberg.direction}</span>
-        </div>
+        {selectedIceberg.widthNm != null && (
+          <div className="detail-row">
+            <span className="detail-label">Width:</span>
+            <span className="detail-value">{selectedIceberg.widthNm} NM</span>
+          </div>
+        )}
+
+        {selectedIceberg.velocityMs != null && (
+          <div className="detail-row">
+            <span className="detail-label">Drift Velocity:</span>
+            <span className="detail-value">{selectedIceberg.velocityMs} m/s</span>
+          </div>
+        )}
+
+        {selectedIceberg.direction && (
+          <div className="detail-row">
+            <span className="detail-label">Direction:</span>
+            <span className="detail-value compass-heading">{selectedIceberg.direction}</span>
+          </div>
+        )}
 
         <div className="detail-row">
           <span className="detail-label">Estimated Size:</span>
@@ -79,29 +100,38 @@ export const IcebergDetailPanel: React.FC<IcebergDetailPanelProps> = ({
           <span className="detail-label">Last Observed:</span>
           <span className="detail-value">{selectedIceberg.lastObserved || 'Recent'}</span>
         </div>
+
+        {selectedIceberg.source && (
+          <div className="detail-row">
+            <span className="detail-label">Source:</span>
+            <span className="detail-value">{selectedIceberg.source}</span>
+          </div>
+        )}
       </div>
 
       {/* 24-Hour Position Prediction Subsection */}
-      <div className="prediction-subsection">
-        <div className="subsection-header">
-          <span className="subsection-icon">🎯</span>
-          <h5>PREDICTED POSITION · 24H</h5>
-        </div>
-        <div className="detail-rows">
-          <div className="detail-row">
-            <span className="detail-label">Pred. Latitude:</span>
-            <span className="detail-value pred-val">
-              {selectedIceberg.predictedPosition24h.latitude.toFixed(4)}° S
-            </span>
+      {selectedIceberg.predictedPosition24h && (
+        <div className="prediction-subsection">
+          <div className="subsection-header">
+            <span className="subsection-icon">🎯</span>
+            <h5>PREDICTED POSITION · 24H</h5>
           </div>
-          <div className="detail-row">
-            <span className="detail-label">Pred. Longitude:</span>
-            <span className="detail-value pred-val">
-              {selectedIceberg.predictedPosition24h.longitude.toFixed(4)}° W
-            </span>
+          <div className="detail-rows">
+            <div className="detail-row">
+              <span className="detail-label">Pred. Latitude:</span>
+              <span className="detail-value pred-val">
+                {selectedIceberg.predictedPosition24h.latitude.toFixed(4)}° S
+              </span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Pred. Longitude:</span>
+              <span className="detail-value pred-val">
+                {selectedIceberg.predictedPosition24h.longitude.toFixed(4)}° W
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -1663,3 +1663,36 @@ body,
     height: 1px;
   }
 }
+
+/* Map status overlays (loading, error, empty) */
+.map-status-overlay {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.map-status-overlay.loading {
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+}
+
+.map-status-overlay.error {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.map-status-overlay.empty {
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
