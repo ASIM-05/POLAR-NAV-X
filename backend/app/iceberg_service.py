@@ -191,7 +191,16 @@ class IcebergService:
                 if time.monotonic() - self._cached_at < self._ttl:
                     return self._cached
 
-            records = self._fetch_latest()
+            try:
+                records = self._fetch_latest()
+            except IcebergDataError:
+                if self._cached is not None:
+                    logger.warning(
+                        "Upstream iceberg sources failed; returning cached dataset"
+                    )
+                    return self._cached
+                raise
+
             self._cached = records
             self._cached_at = time.monotonic()
             return records
