@@ -68,10 +68,10 @@ POLAR NAV-X/
 
 - [x] Step 1: Project Setup
 - [x] Step 2: Data Collection and Processing
-- [ ] Step 3: ML Model Development
+- [x] Step 3: ML Model Development
 - [ ] Step 4: Routing Algorithm Implementation
 - [ ] Step 5: Backend API Development
-- [ ] Step 6: Frontend Development
+- [x] Step 6: Frontend Development
 - [ ] Step 7: Integration and Testing
 
 ## License
