@@ -242,3 +242,35 @@ def test_api_returns_503_when_upstream_fails(client, monkeypatch):
     response = client.get("/api/icebergs")
     assert response.status_code == 503
     assert "unavailable" in response.json()["detail"]
+
+
+def test_api_returns_cached_data_when_upstream_fails_after_success(
+    client, monkeypatch
+):
+    monkeypatch.setattr(
+        service_module.httpx,
+        "get",
+        _stub_get({"usicecenter.gov": USNIC_CSV_WITH_BAD_ROWS}),
+    )
+
+    success = client.get("/api/icebergs")
+    assert success.status_code == 200
+    cached_body = success.json()
+
+    # Force the next request to attempt a fresh upstream fetch.
+    iceberg_service._cached_at = 0.0
+
+    monkeypatch.setattr(
+        service_module.httpx,
+        "get",
+        _stub_get(
+            {
+                "usicecenter.gov": httpx.ConnectError("boom"),
+                "scp.byu.edu": httpx.ConnectError("boom"),
+            }
+        ),
+    )
+
+    response = client.get("/api/icebergs")
+    assert response.status_code == 200
+    assert response.json() == cached_body
