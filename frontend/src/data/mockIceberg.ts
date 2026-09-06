@@ -9,19 +9,21 @@ export interface Iceberg {
   name?: string;
   latitude: number;
   longitude: number;
-  status: string;
+  status?: string;
   sizeKm2?: number | null;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  lengthNm?: number | null;
+  widthNm?: number | null;
+  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
   lastObserved?: string;
   source?: string;
-  // Step 3 Extended Fields:
-  currentStatus: 'Drifting' | 'Stationary' | 'Calving' | 'Grounded';
-  velocityMs: number;
-  direction: string;
-  predictedPosition24h: {
+  // Step 3 Extended Fields (optional when sourced from live API):
+  currentStatus?: 'Drifting' | 'Stationary' | 'Calving' | 'Grounded';
+  velocityMs?: number;
+  direction?: string;
+  predictedPosition24h?: {
     latitude: number;
     longitude: number;
-  };
+  } | null;
 }
 
 export const mockIcebergs: Iceberg[] = [

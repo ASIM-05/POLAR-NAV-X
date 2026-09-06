@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LandingPage from './components/LandingPage';
 import AntarcticMap from './components/AntarcticMap';
 import TopBar from './components/TopBar';
@@ -7,7 +7,8 @@ import IcebergDetailPanel from './components/IcebergDetailPanel';
 import WeatherRiskPanel from './components/WeatherRiskPanel';
 import OceanCurrentWeatherPanel from './components/OceanCurrentWeatherPanel';
 import { mockRoutes, type RouteData } from './data/mockRoute';
-import { mockIcebergs, type Iceberg } from './data/mockIceberg';
+import { type Iceberg } from './data/mockIceberg';
+import { fetchIcebergs } from './api/icebergs';
 import { type LayerVisibilityState } from './components/MapLayerControl';
 
 /**
@@ -32,7 +33,31 @@ function App() {
   // Shared selected iceberg state across Map and Right Details Panel
   const [selectedIcebergId, setSelectedIcebergId] = useState<string | null>(null);
 
-  const selectedIceberg = mockIcebergs.find((i) => i.id === selectedIcebergId) || null;
+  // Live iceberg data fetched from the FastAPI backend
+  const [icebergs, setIcebergs] = useState<Iceberg[]>([]);
+  const [icebergsLoading, setIcebergsLoading] = useState<boolean>(true);
+  const [icebergsError, setIcebergsError] = useState<string | null>(null);
+
+  const selectedIceberg = icebergs.find((i) => i.id === selectedIcebergId) || null;
+
+  useEffect(() => {
+    const loadIcebergs = async () => {
+      try {
+        setIcebergsLoading(true);
+        setIcebergsError(null);
+        const records = await fetchIcebergs();
+        setIcebergs(records);
+      } catch (err) {
+        setIcebergsError(err instanceof Error ? err.message : 'Failed to load iceberg data');
+      } finally {
+        setIcebergsLoading(false);
+      }
+    };
+
+    loadIcebergs();
+    const interval = setInterval(loadIcebergs, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Shared layer visibility state across map layers and MapLayerControl
   const [layers, setLayers] = useState<LayerVisibilityState>({
@@ -102,7 +127,7 @@ function App() {
         </aside>
 
         {/* CENTER COLUMN (Flex Grow Map - fully clear of floating overlays) */}
-        <main className="dashboard-center">
+        <main className="dashboard-center" style={{ position: 'relative' }}>
           <AntarcticMap
             routes={routes}
             selectedRouteId={selectedRouteId}
@@ -110,9 +135,20 @@ function App() {
             layers={layers}
             isLeftOpen={isLeftOpen}
             isRightOpen={isRightOpen}
+            icebergs={icebergs}
             selectedIcebergId={selectedIcebergId}
             onSelectIceberg={handleSelectIceberg}
           />
+
+          {icebergsLoading && (
+            <div className="map-status-overlay loading">Loading iceberg data…</div>
+          )}
+          {icebergsError && (
+            <div className="map-status-overlay error">{icebergsError}</div>
+          )}
+          {!icebergsLoading && !icebergsError && icebergs.length === 0 && (
+            <div className="map-status-overlay empty">No iceberg data available</div>
+          )}
         </main>
 
         {/* RIGHT COLUMN (~320px) */}
